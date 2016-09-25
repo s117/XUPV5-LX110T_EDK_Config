@@ -1,0 +1,23 @@
+###############################################################################
+# PCIe Bridge Constraints for XUPV5
+###############################################################################
+
+Net "pcie_bridge/*SPLB_Clk" TNM_NET = "SPLB_Clk";
+Net "pcie_bridge/*Bridge_Clk" TNM_NET = "Bridge_Clk";
+
+## Timing constraints between clock-domain boundaries
+#
+TIMESPEC "TS_PLB_PCIe" = FROM "SPLB_Clk" TO "Bridge_Clk" 8 ns datapathonly;
+TIMESPEC "TS_PCIe_PLB" = FROM "Bridge_Clk" TO "SPLB_Clk" 8 ns datapathonly;
+
+# BlockRAM placement
+INST "pcie_bridge/*pcie_mim_wrapper_i/bram_tl_tx/generate_tdp2[1].ram_tdp2_inst"  LOC = "RAMB36_X3Y11";
+INST "pcie_bridge/*pcie_mim_wrapper_i/bram_tl_rx/generate_tdp2[1].ram_tdp2_inst"  LOC = "RAMB36_X3Y9";
+INST "pcie_bridge/*pcie_mim_wrapper_i/bram_tl_tx/generate_tdp2[0].ram_tdp2_inst"  LOC = "RAMB36_X3Y10";
+INST "pcie_bridge/*pcie_mim_wrapper_i/bram_tl_rx/generate_tdp2[0].ram_tdp2_inst"  LOC = "RAMB36_X3Y8";
+INST "pcie_bridge/*pcie_mim_wrapper_i/bram_retry/generate_sdp.ram_sdp_inst"       LOC = "RAMB36_X3Y7";
+
+# Timing critical placements
+INST "pcie_bridge/*tx_bridge/shift_pipe1"                 LOC = "SLICE_X59Y56";
+INST "pcie_bridge/*arb_inst/completion_available"         LOC = "SLICE_X58Y46";
+INST "pcie_bridge/*management_interface/mgmt_rdata_d1_3"  LOC = "SLICE_X59Y45";

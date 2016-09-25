@@ -1,0 +1,183 @@
+###############################################################################
+# Define multicycle paths - these paths may take longer because additional
+# time allowed for logic to settle in calibration/initialization FSM
+###############################################################################
+
+
+# MUX Select for either rising/falling CLK0 for 2nd stage read capture
+INST "*/u_phy_calib_0/gen_rd_data_sel*.u_ff_rd_data_sel" TNM = "TNM_RD_DATA_SEL";
+TIMESPEC "TS_MC_RD_DATA_SEL" = FROM "TNM_RD_DATA_SEL" TO FFS
+  "TS_sys_clk_pin" * 2;
+# MUX select for read data - optional delay on data to account for byte skews
+#INST "*/u_usr_rd_0/gen_rden_sel_mux*.u_ff_rden_sel_mux" TNM = "TNM_RDEN_SEL_MUX";
+#TIMESPEC "TS_MC_RDEN_SEL_MUX" = FROM "TNM_RDEN_SEL_MUX" TO FFS   "TS_sys_clk_pin" * 2;
+# Calibration/Initialization complete status flag (for PHY logic only)
+INST "*/u_phy_init_0/u_ff_phy_init_data_sel" TNM = "TNM_PHY_INIT_DATA_SEL";
+TIMESPEC "TS_MC_PHY_INIT_DATA_SEL_0" = FROM "TNM_PHY_INIT_DATA_SEL" TO
+ FFS "TS_sys_clk_pin" * 2;
+TIMESPEC "TS_MC_PHY_INIT_DATA_SEL_90" = FROM "TNM_PHY_INIT_DATA_SEL" TO
+  FFS "TS_sys_clk_pin" * 2;
+# Select (address) bits for SRL32 shift registers used in stage3/stage4
+# calibration
+INST "*/u_phy_calib_0/gen_gate_dly*.u_ff_gate_dly" TNM = "TNM_GATE_DLY";
+TIMESPEC "TS_MC_GATE_DLY" = FROM "TNM_GATE_DLY" TO FFS "TS_sys_clk_pin" * 2;
+INST "*/u_phy_calib_0/gen_rden_dly*.u_ff_rden_dly" TNM = "TNM_RDEN_DLY";
+TIMESPEC "TS_MC_RDEN_DLY" = FROM "TNM_RDEN_DLY" TO FFS "TS_sys_clk_pin" * 2;
+INST "*/u_phy_calib_0/gen_cal_rden_dly*.u_ff_cal_rden_dly"
+  TNM = "TNM_CAL_RDEN_DLY";
+TIMESPEC "TS_MC_CAL_RDEN_DLY" = FROM "TNM_CAL_RDEN_DLY" TO FFS
+  "TS_sys_clk_pin" * 2;
+
+###############################################################################
+# DQS Read Postamble Glitch Squelch circuit related constraints
+###############################################################################
+
+###############################################################################
+# LOC placement of DQS-squelch related IDDR and IDELAY elements
+# Each circuit can be located at any of the following locations:
+#  1. Ununsed "N"-side of DQS diff pair I/O
+#  2. DM data mask (output only, input side is free for use)
+#  3. Any output-only site
+###############################################################################
+
+INST "*/gen_dqs[0].u_iob_dqs/u_iddr_dq_ce"  LOC = "ILOGIC_X0Y96";
+INST "*/gen_dqs[0].u_iob_dqs/u_iodelay_dq_ce"  LOC = "IODELAY_X0Y96";
+INST "*/gen_dqs[1].u_iob_dqs/u_iddr_dq_ce"  LOC = "ILOGIC_X0Y58";
+INST "*/gen_dqs[1].u_iob_dqs/u_iodelay_dq_ce"  LOC = "IODELAY_X0Y58";
+INST "*/gen_dqs[2].u_iob_dqs/u_iddr_dq_ce"  LOC = "ILOGIC_X0Y62";
+INST "*/gen_dqs[2].u_iob_dqs/u_iodelay_dq_ce"  LOC = "IODELAY_X0Y62";
+INST "*/gen_dqs[3].u_iob_dqs/u_iddr_dq_ce"  LOC = "ILOGIC_X0Y100";
+INST "*/gen_dqs[3].u_iob_dqs/u_iodelay_dq_ce"  LOC = "IODELAY_X0Y100";
+INST "*/gen_dqs[4].u_iob_dqs/u_iddr_dq_ce"  LOC = "ILOGIC_X0Y102";
+INST "*/gen_dqs[4].u_iob_dqs/u_iodelay_dq_ce"  LOC = "IODELAY_X0Y102";
+INST "*/gen_dqs[5].u_iob_dqs/u_iddr_dq_ce"  LOC = "ILOGIC_X0Y256";
+INST "*/gen_dqs[5].u_iob_dqs/u_iodelay_dq_ce"  LOC = "IODELAY_X0Y256";
+INST "*/gen_dqs[6].u_iob_dqs/u_iddr_dq_ce"  LOC = "ILOGIC_X0Y260";
+INST "*/gen_dqs[6].u_iob_dqs/u_iodelay_dq_ce"  LOC = "IODELAY_X0Y260";
+INST "*/gen_dqs[7].u_iob_dqs/u_iddr_dq_ce"  LOC = "ILOGIC_X0Y262";
+INST "*/gen_dqs[7].u_iob_dqs/u_iodelay_dq_ce"  LOC = "IODELAY_X0Y262";
+
+INST "DDR2_SDRAM/DDR2_SDRAM/gen_no_iodelay_grp.gen_instantiate_idelayctrls[1].idelayctrl0" LOC = "IDELAYCTRL_X0Y2";
+INST "DDR2_SDRAM/DDR2_SDRAM/gen_no_iodelay_grp.gen_instantiate_idelayctrls[0].idelayctrl0" LOC = "IDELAYCTRL_X0Y6";
+INST "DDR2_SDRAM/DDR2_SDRAM/gen_no_iodelay_grp.gen_instantiate_idelayctrls[2].idelayctrl0" LOC = "IDELAYCTRL_X0Y1";
+
+###############################################################################
+# LOC and timing constraints for flop driving DQS CE enable signal
+# from fabric logic. Even though the absolute delay on this path is
+# calibrated out (when synchronizing this output to DQS), the delay
+# should still be kept as low as possible to reduce post-calibration
+# voltage/temp variations - these are roughly proportional to the
+# absolute delay of the path
+###############################################################################
+
+INST "*/u_phy_calib_0/gen_gate[0].u_en_dqs_ff"  LOC = "SLICE_X0Y48";
+INST "*/u_phy_calib_0/gen_gate[1].u_en_dqs_ff"  LOC = "SLICE_X0Y29";
+INST "*/u_phy_calib_0/gen_gate[2].u_en_dqs_ff"  LOC = "SLICE_X0Y31";
+INST "*/u_phy_calib_0/gen_gate[3].u_en_dqs_ff"  LOC = "SLICE_X0Y50";
+INST "*/u_phy_calib_0/gen_gate[4].u_en_dqs_ff"  LOC = "SLICE_X0Y51";
+INST "*/u_phy_calib_0/gen_gate[5].u_en_dqs_ff"  LOC = "SLICE_X0Y128";
+INST "*/u_phy_calib_0/gen_gate[6].u_en_dqs_ff"  LOC = "SLICE_X0Y130";
+INST "*/u_phy_calib_0/gen_gate[7].u_en_dqs_ff"  LOC = "SLICE_X0Y131";
+
+# Control for DQS gate - from fabric flop. Prevent "runaway" delay -
+# two parts to this path: (1) from fabric flop to IDELAY, (2) from
+# IDELAY to asynchronous reset of IDDR that drives the DQ CE's
+# A single number is used for all speed grades - value based on 333MHz.
+# This can be relaxed for lower frequencies.
+NET "*/u_phy_io_0/en_dqs*" MAXDELAY = 600 ps;
+NET "*/u_phy_io_0/gen_dqs*.u_iob_dqs/en_dqs_sync" MAXDELAY = 850 ps;
+
+###############################################################################
+# "Half-cycle" path constraint from IDDR to CE pin for all DQ IDDR's
+# for DQS Read Postamble Glitch Squelch circuit
+###############################################################################
+
+# Max delay from output of IDDR to CE input of DQ IDDRs = tRPST + some slack
+#  where slack account for rise-time of DQS on board. For now assume slack = 
+#  0.400ns (based on initial SPICE simulations, assumes use of ODT), so 
+#  time = 0.4*Tcyc + 0.40ns = 1.6ns @333MHz
+INST "*/gen_dqs[*].u_iob_dqs/u_iddr_dq_ce" TNM = "TNM_DQ_CE_IDDR";
+INST "*/gen_dq[*].u_iob_dq/gen_stg2_*.u_iddr_dq" TNM = "TNM_DQS_FLOPS";
+TIMESPEC "TS_DQ_CE" = FROM "TNM_DQ_CE_IDDR" TO "TNM_DQS_FLOPS" 1.9 ns;
+
+###############################################################################
+# MIG 2.2: Prevent unrelated logic from being packed into any slices used
+#          by read data capture RPM's - if unrelated logic gets packed into
+#          these slices, it could cause the DIRT strings that define the
+#          IDDR -> fabric flop routing to become unroutable during PAR stage
+#          (unrelated logic may require routing resources required by the
+#          DIRT strings - MAP does not currently take into account DIRT
+#          strings when placing logic
+###############################################################################
+ 
+# AREA_GROUP "DDR_CAPTURE_FFS" GROUP = CLOSED;
+
+################################################################################
+
+#INST "*/gen_dq[0].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y22;            #  AF30      X0Y22    *
+#INST "*/gen_dq[1].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y23;            #  AK31      X0Y23    
+#INST "*/gen_dq[2].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y25;            #  AF31      X0Y25    
+#INST "*/gen_dq[3].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y26;            #  AD30      X0Y26    
+#INST "*/gen_dq[4].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y21;            #  AJ30      X0Y21    
+#INST "*/gen_dq[5].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y22;            #  AF29      X0Y22    ***
+#INST "*/gen_dq[6].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y24;            #  AD29      X0Y24    
+#INST "*/gen_dq[7].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y24;            #  AE29      X0Y24    
+#INST "*/gen_dq[8].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y8;             #  AH27      X0Y8     ***
+#INST "*/gen_dq[9].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y12;            #  AF28      X0Y12    
+#INST "*/gen_dq[10].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y13;           #  AH28      X0Y13    
+#INST "*/gen_dq[11].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y14;           #  AA28      X0Y14    
+#INST "*/gen_dq[12].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y6;            #  AG25      X0Y6     
+#INST "*/gen_dq[13].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y8;            #  AJ26      X0Y8     *
+#INST "*/gen_dq[14].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y13;           #  AG28      X0Y13    
+#INST "*/gen_dq[15].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y14;           #  AB28      X0Y14    
+#INST "*/gen_dq[16].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y15;           #  AC28      X0Y15    
+#INST "*/gen_dq[17].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y16;           #  AB25      X0Y16    ***
+#INST "*/gen_dq[18].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y18;           #  AC27      X0Y18    
+#INST "*/gen_dq[19].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y19;           #  AA26      X0Y19    
+#INST "*/gen_dq[20].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y16;           #  AB26      X0Y16    *
+#INST "*/gen_dq[21].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y17;           #  AA24      X0Y17    
+#INST "*/gen_dq[22].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y18;           #  AB27      X0Y18    
+#INST "*/gen_dq[23].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y19;           #  AA25      X0Y19    
+#INST "*/gen_dq[24].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y26;           #  AC29      X0Y26    
+#INST "*/gen_dq[25].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y29;           #  AB30      X0Y29    ***
+#INST "*/gen_dq[26].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y33;           #  W31       X0Y33    
+#INST "*/gen_dq[27].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y35;           #  V30       X0Y35    
+#INST "*/gen_dq[28].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y29;           #  AC30      X0Y29    *
+#INST "*/gen_dq[29].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y32;           #  W29       X0Y32    
+#INST "*/gen_dq[30].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y34;           #  V27       X0Y34    ***
+#INST "*/gen_dq[31].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y36;           #  W27       X0Y36    
+#INST "*/gen_dq[32].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y32;           #  V29       X0Y32    
+#INST "*/gen_dq[33].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y36;           #  Y27       X0Y36    
+#INST "*/gen_dq[34].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y38;           #  Y26       X0Y38    
+#INST "*/gen_dq[35].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y39;           #  W24       X0Y39    
+#INST "*/gen_dq[36].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y34;           #  V28       X0Y34   * 
+#INST "*/gen_dq[37].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y37;           #  W25       X0Y37    
+#INST "*/gen_dq[38].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y38;           #  W26       X0Y38    
+#INST "*/gen_dq[39].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y39;           #  V24       X0Y39    
+#INST "*/gen_dq[40].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y100;          #  R24       X0Y100   
+#INST "*/gen_dq[41].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y101;          #  P25       X0Y101   
+#INST "*/gen_dq[42].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y102;          #  N24       X0Y102   
+#INST "*/gen_dq[43].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y103;          #  P26       X0Y103   
+#INST "*/gen_dq[44].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y100;          #  T24       X0Y100   
+#INST "*/gen_dq[45].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y101;          #  N25       X0Y101   
+#INST "*/gen_dq[46].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y103;          #  P27       X0Y103   
+#INST "*/gen_dq[47].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y104;          #  N28       X0Y104   
+#INST "*/gen_dq[48].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y104;          #  M28       X0Y104   
+#INST "*/gen_dq[49].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y106;          #  L28       X0Y106   
+#INST "*/gen_dq[50].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y112;          #  F25       X0Y112   
+#INST "*/gen_dq[51].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y113;          #  H25       X0Y113   
+#INST "*/gen_dq[52].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y105;          #  K27       X0Y105   
+#INST "*/gen_dq[53].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y106;          #  K28       X0Y106   
+#INST "*/gen_dq[54].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y113;          #  H24       X0Y113   
+#INST "*/gen_dq[55].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y114;          #  G26       X0Y114   
+#INST "*/gen_dq[56].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y114;          #  G25       X0Y114   
+#INST "*/gen_dq[57].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y116;          #  M26       X0Y116   
+#INST "*/gen_dq[58].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y117;          #  J24       X0Y117   
+#INST "*/gen_dq[59].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y118;          #  L26       X0Y118   
+#INST "*/gen_dq[60].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y115;          #  J27       X0Y115   
+#INST "*/gen_dq[61].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y116;          #  M25       X0Y116   
+#INST "*/gen_dq[62].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y118;          #  L25       X0Y118   
+#INST "*/gen_dq[63].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise"  RLOC_ORIGIN = X0Y119;          #  L24       X0Y119   
+                                                                                            
+                                                                                            
+

@@ -1,0 +1,98 @@
+#### Hard_Ethernet_MAC constraints
+
+
+net "*Hard_Ethernet_MAC*/REFCLK"   TNM_NET = "REFCLK"; #name of signal connected to TEMAC REFCLK input
+TIMEGRP  "delayctrl_clk_200"       = "REFCLK";
+TIMESPEC "TS_delayctrl_clk_200"    = PERIOD "delayctrl_clk_200" 5000 ps HIGH 50 %; #constant value based on constant 200 MHZ ref clock
+
+net "Hard_Ethernet_MAC*/GTX_CLK_0"   TNM_NET = "clk_125"; #name of signal connected to TEMAC GTX_CLK_0 input
+TIMEGRP  "ethernet_gtx_clk_125"    = "clk_125";
+TIMESPEC "TS_ethernet_gtx_clk_125" = PERIOD "ethernet_gtx_clk_125" 8000 ps HIGH 50 %; #constant value based on constant 125 MHZ GTX clock
+
+NET "*Hard_Ethernet_MAC*/LlinkTemac0_CLK"   TNM_NET = "LLCLK0"; #name of signal connected to TEMAC LlinkTemac0_CLK input
+NET "*Hard_Ethernet_MAC*/SPLB_Clk"   TNM_NET = "PLBCLK"; #name of signal connected to TEMAC SPLB_Clk input
+
+# EMAC0 TX Client Clock
+NET "*/TxClientClk_0"              TNM_NET = "clk_client_tx0";
+TIMEGRP  "gmii_client_clk_tx0"     = "clk_client_tx0";
+TIMESPEC "TS_gmii_client_clk_tx0"  = PERIOD "gmii_client_clk_tx0" 7500 ps HIGH 50 %;
+
+# EMAC0 RX Client Clock
+NET "*/RxClientClk_0"              TNM_NET = "clk_client_rx0";
+TIMEGRP  "gmii_client_clk_rx0"     = "clk_client_rx0";
+TIMESPEC "TS_gmii_client_clk_rx0"  = PERIOD "gmii_client_clk_rx0" 7500 ps HIGH 50 %;
+
+# EMAC0 TX PHY Clock
+NET "*/GMII_TX_CLK_0*"             TNM_NET = "clk_phy_tx0";
+TIMEGRP  "gmii_phy_clk_tx0"        = "clk_phy_tx0";
+TIMESPEC "TS_gmii_phy_clk_tx0"     = PERIOD "gmii_phy_clk_tx0" 7500 ps HIGH 50 %;
+
+# EMAC0 RX PHY Clock
+NET "*/GMII_RX_CLK_0*"             TNM_NET = "phy_clk_rx0";
+TIMEGRP  "gmii_clk_phy_rx0"        = "phy_clk_rx0";
+TIMESPEC "TS_gmii_clk_phy_rx0"     = PERIOD "gmii_clk_phy_rx0" 7500 ps HIGH 50 %;
+
+# EMAC0 TX MII 10/100 PHY Clock
+NET "*MII_TX_CLK_0*" TNM_NET       = "clk_mii_tx_clk0";
+TIMESPEC "TS_mii_tx_clk0"          = PERIOD "clk_mii_tx_clk0" 40000 ps HIGH 50 %;
+
+# Set the IDELAY values on the data inputs.
+# Please modify to suit your design.
+INST "*gmii0*ideld*"     IOBDELAY_TYPE = FIXED;
+INST "*gmii0*ideldv"     IOBDELAY_TYPE = FIXED;
+INST "*gmii0*ideler"     IOBDELAY_TYPE = FIXED;
+
+INST "*gmii_rxc0_delay"  IOBDELAY_TYPE = FIXED;
+
+INST "*gmii0*ideldv"     IDELAY_VALUE = 35;
+INST "*gmii0*ideld0"     IDELAY_VALUE = 35;
+INST "*gmii0*ideld1"     IDELAY_VALUE = 35;
+INST "*gmii0*ideld2"     IDELAY_VALUE = 35;
+INST "*gmii0*ideld3"     IDELAY_VALUE = 35;
+INST "*gmii0*ideld4"     IDELAY_VALUE = 35;
+INST "*gmii0*ideld5"     IDELAY_VALUE = 35;
+INST "*gmii0*ideld6"     IDELAY_VALUE = 35;
+INST "*gmii0*ideld7"     IDELAY_VALUE = 35;
+INST "*gmii0*ideler"     IDELAY_VALUE = 35;
+
+INST "*gmii_rxc0_delay"  IDELAY_VALUE = 0;
+
+# PHY spec: 2.5ns setup time, 0.5ns hold time
+# Assumes equal length board traces
+
+NET "fpga_0_Hard_Ethernet_MAC_GMII_RXD_0_pin(?)"  TNM = "gmii_rx_0";
+NET "fpga_0_Hard_Ethernet_MAC_GMII_RX_DV_0_pin"   TNM = "gmii_rx_0";
+NET "fpga_0_Hard_Ethernet_MAC_GMII_RX_ER_0_pin"   TNM = "gmii_rx_0";
+
+TIMEGRP "gmii_rx_0" OFFSET = IN 2.5 ns VALID 3 ns BEFORE "fpga_0_Hard_Ethernet_MAC_GMII_RX_CLK_0_pin";
+
+# GMII Receiver Constraints:  place flip-flops in IOB
+INST "*gmii0*RXD_TO_MAC*"    IOB = TRUE;
+INST "*gmii0*RX_DV_TO_MAC"   IOB = TRUE;
+INST "*gmii0*RX_ER_TO_MAC"   IOB = TRUE;
+
+INST "*gmii0*GMII_TXD_?"     IOB = TRUE;
+INST "*gmii0*GMII_TX_EN"     IOB = TRUE;
+INST "*gmii0*GMII_TX_ER"     IOB = TRUE;
+
+TIMESPEC TS_PLB_2_TXPHY0 = FROM PLBCLK      TO clk_phy_tx0 8000 ps DATAPATHONLY; #constant value based on Ethernet clock
+TIMESPEC TS_RXPHY0_2_PLB = FROM phy_clk_rx0 TO PLBCLK      8000 ps DATAPATHONLY; #varies based on period of PLB clock
+
+TIMESPEC "TS_LL_CLK0_2_RX_CLIENT_CLK0"  = FROM LLCLK0 TO clk_client_rx0 8000 ps DATAPATHONLY; #constant value based on Ethernet clock
+TIMESPEC "TS_LL_CLK0_2_TX_CLIENT_CLK0"  = FROM LLCLK0 TO clk_client_tx0 8000 ps DATAPATHONLY; #constant value based on Ethernet clock
+TIMESPEC "TS_RX_CLIENT_CLK0_2_LL_CLK0"  = FROM clk_client_rx0 TO LLCLK0 8000 ps DATAPATHONLY; #varies based on period of LocalLink clock
+TIMESPEC "TS_TX_CLIENT_CLK0_2_LL_CLK0"  = FROM clk_client_tx0 TO LLCLK0 8000 ps DATAPATHONLY; #varies based on period of LocalLink clock
+
+TIMESPEC "TS_REF_CLK_2_PLB_CLIENT_CLK"  = FROM REFCLK TO PLBCLK 8000 ps DATAPATHONLY; #varies based on period of PLB clock
+TIMESPEC "TS_PLB_CLIENT_CLK_2_REF_CLK"  = FROM PLBCLK TO REFCLK 5000 ps DATAPATHONLY; #constant value based on constant 200 MHZ ref clock
+
+TIMESPEC "TS_REF_CLK_2_TX_CLIENT_CLK0"  = FROM REFCLK TO clk_client_tx0 8000 ps DATAPATHONLY; #constant value based on Ethernet clock
+TIMESPEC "TS_TX_CLIENT_CLK0_2_REF_CLK"  = FROM clk_client_tx0 TO REFCLK 5000 ps DATAPATHONLY; #constant value based on constant 200 MHZ ref clock
+
+TIMESPEC "TS_REF_CLK_2_RX_CLIENT_CLK0"  = FROM REFCLK TO clk_client_rx0 8000 ps DATAPATHONLY; #constant value based on Ethernet clock
+TIMESPEC "TS_RX_CLIENT_CLK0_2_REF_CLK"  = FROM clk_client_rx0 TO REFCLK 5000 ps DATAPATHONLY; #constant value based on constant 200 MHZ ref clock
+
+
+net "*/hrst*" TIG;
+net "*/V5HARD_SYS.I_TEMAC/speed_vector_0_i*" TIG;
+
